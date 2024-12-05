@@ -15,7 +15,6 @@ jobs:
     env:
       CRAN: "https://packagemanager.posit.co/cran/__linux__/jammy/latest"
       GITHUB_PAT: ${{ secrets.PAT }}
-    if: "contains(github.event.head_commit.message, 'deploy: {')"
 
     steps:
       - uses: actions/checkout@v3
@@ -37,10 +36,11 @@ jobs:
           pak::pak(c("arrow", "cluster", "dplyr", "flextable", "formatters", "gdtools", "gfonts", "ggforce", "ggplot2", "grid", "magick", "officer", "palmerpenguins", "patchwork", "ragg", "readxl", "rmarkdown", "scales", "stringr", "systemfonts", "tables", "tibble", "tidyverse", "yaml", "remotes", "tinytex", "quarto", "knitr", "htmltools", "here", "renv"))
         shell: Rscript {0}
 
-      - name: Generate books
+      # Generate the Quarto book
+      - name: Render Quarto Project
         run: |
-          quarto::quarto_render(input = ".", as_job = FALSE)
-        shell: Rscript {0}
+          quarto render
+        shell: bash
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

@@ -13,7 +13,7 @@ library(tidyverse)
 ## Tableau des cancers en 2021
 
 
-On va travailler sur un jeu de données présenté sur le site https://data.ameli.fr/pages/data-pathologies/. Le jeu présente quelques statistiques sur le cancer en 2021.
+On va travailler sur un jeu de données présenté sur le site <https://data.ameli.fr/pages/data-pathologies/>. Le jeu présente quelques statistiques sur le cancer en 2021.
 
 On vous demande de construire de façon itérative un tableau présentant simplement
 les données tout en suivant quelques règles de formatage.

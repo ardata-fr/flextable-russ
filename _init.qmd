@@ -1,23 +1,7 @@
-
-
-
 ```{r include=FALSE}
-
 # Execute in other qmd files by calling {{< include _init.qmd >}}
-
-
 library(knitr)
 library(flextable)
-
-#Load options
-options <- yaml::yaml.load_file('_options.yml', handlers=list(logical=traindown:::verbatim_logical))
-for (name in names(options)) {
-  assign(x = name, value = options[[name]], envir = .GlobalEnv)
-}
-
-#For backwards compatibility when calling just show_answer and not options$show_answer
-list2env(options, envir = globalenv())
-
 
 # Additions to temp file paths so they don't cause latex error with "C:"
 tempfile <- function(...) {
@@ -27,21 +11,6 @@ tempdir <- function(...) {
   base::tempdir(...)|> normalizePath(winslash = '/', mustWork = FALSE)
 }
 
-
-
-rmd_file_show <- function(path) {
-  x <- list(path = path)
-  class(x) <- "rmd_file_show"
-  x
-}
-
-knit_print.rmd_file_show <- function(x, echo=FALSE, ...) {
-  str <- c("````markdown", 
-           readLines(con = x$path),
-           "````"
-           ) |> paste0(collapse = "\n")
-  asis_output(str)
-}
 
 gdtools::register_gfont("Open Sans")
 
@@ -73,11 +42,5 @@ opts_chunk$set(
     )
 )
 
-if (options$use_df_printer) {
-  use_df_printer()
-}
-
-
-
-
+use_df_printer()
 ```

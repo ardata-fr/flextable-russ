@@ -1,0 +1,699 @@
+
+{{< include _init.qmd >}}
+```{r include=FALSE}
+library(flextable)
+library(systemfonts)
+library(gfonts)
+library(gdtools)
+library(dplyr)
+
+
+register_gfont("Open Sans")
+register_gfont("Inconsolata")
+register_gfont("Permanent Marker")
+```
+
+
+
+# Introduction à flextable
+
+
+## Reporting tabulaire avec flextable
+
+
+```{r eval = is_html_output(), echo=FALSE}
+gdtools::addGFontHtmlDependency("Open Sans")
+gdtools::addGFontHtmlDependency("Inconsolata")
+
+```
+
+
+Son but est de simplifier la création et la personnalisation de tableaux en offrant une interface souple et conviviale au sein de l'environnement R. Le package propose de nombreuses fonctionnalités pour préparer la structure des tableaux, formater le contenu et l'apparence.
+
+```{r}
+library(flextable)
+ft <- summarizor(cars) %>%
+  as_flextable(sep_w = 0) %>%
+  color(
+    i = ~ stat == "range",
+    color = "pink"
+  ) %>%
+  bold(j = 1) %>%
+  italic(j = 2, italic = TRUE)
+ft
+```
+
+### Fonctions principales
+
+Deux fonctions principales sont fournies afin de créer des tableaux :
+
+- `flextable()` permet de créer facilement un tableau de reporting à partir d'un data.frame. 
+
+```{r}
+head(airquality) %>%
+  flextable() %>%
+  autofit()
+```
+
+
+- La fonction `as_flextable()` est founie pour transformer des objets R en tableaux 'flextable'
+sans avoir à préparer le data.frame original. 
+
+```{r echo=TRUE}
+ft <- with(palmerpenguins::penguins, table(species, island)) %>%
+  as_flextable()
+ft
+```
+
+Une fois que l'on a un objet flextable, il est possible d'utiliser l'ensemble des
+fonctions disponibles pour ajouter ou supprimer des lignes et des colonnes, pour 
+colorer ou mettre en gras le contenu des cellules, pour fusionner des cellules, etc.
+
+```{r}
+ft <- add_header_lines(ft, "Size measurements for adult foraging penguins near Palmer Station, Antarctica") %>%
+  italic(part = "header", i = 1) %>%
+  color(color = "#0099FC", part = "footer")
+ft
+```
+
+### Sorties supportées
+
+- HTML
+- Microsoft Word and RTF
+- Microsoft PowerPoint
+- PDF
+- 'grid graphics'
+- Excel (<https://github.com/pteridin/flexlsx>)
+
+Vous pouvez rapidement sauvegarder le résultat :
+
+- dans un document Microsoft Word avec `save_as_docx()`,
+- dans une présentation Microsoft PowerPoint avec `save_as_pptx()`,
+- dans un PNG avec `save_as_image()` avec un support complet des polices.
+
+```{r eval=FALSE}
+save_as_docx(ft, path = "assets/files/ft.docx")
+save_as_pptx(ft, path = "assets/files/ft.pptx")
+save_as_image(ft, path = "assets/files/ft.png")
+```
+
+Vous pouvez utiliser également le R Markdown et Quarto, les tableaux 
+seront automatiquement générés à l'impression.
+
+En mode interactif, il est aussi possible d'appeler la fonction
+`print()` avec l'argument `preview="docx"` ou `preview="pdf"`. Le
+tableau sera alors intégré à un document et ce dernier sera ouvert
+par le programme associé au format automatiquement.
+
+```{r eval=FALSE}
+print(ft, preview = "docx")
+```
+
+### Réaliser des tableaux homogènes
+
+Lors de la création d'un tableau, des valeurs par défaut sont utilisées comme la famille de police, la taille de la police, le remplissage, l'alignement du texte... Ces propriétés sont utilisées lors de la création du tableau mobile et par les fonctions *thème*.
+
+Il est recommandé de ne les spécifier qu'une seule fois dans la session R afin d'obtenir des tableaux cohérents mais aussi afin d'éviter 
+d'avoir à appeler de nombreuses fois les mêmes fonctions.
+
+Elles peuvent être lues avec la fonction `get_flextable_defaults()` et , plus important, peuvent être mises à jour avec la fonction `set_flextable_defaults()`.
+
+
+```{r}
+set_flextable_defaults(
+  font.color = "#0099FC",
+  border.color = "red",
+  theme_fun = "theme_box"
+)
+
+dat <- data.frame(
+  wool = c("A", "B"),
+  L = c(44.56, 28.22),
+  M = c(24, 28.77),
+  H = c(24.56, 18.78)
+)
+flextable(dat)
+```
+
+Les valeurs définies précédemment sont un peu criardes, nous allons
+utiliser des valeurs plus raisonnables. Ce paramétrage n'est à faire 
+qu'une seule fois dans votre session R.
+
+```{r}
+set_flextable_defaults(
+  font.size = 12, font.family = "Open Sans",
+  font.color = "#333333",
+  table.layout = "fixed",
+  border.color = "gray",
+  theme_fun = theme_booktabs,
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4
+)
+```
+
+```{r}
+flextable(dat)
+```
+
+## La largeur des colonnes
+
+Par défaut, la largeur des colonnes d'un flextable est fixe, ce qui signifie que
+par défaut elles ont une largeur constante indépendamment du contenu. Dans de
+nombreuses situations, il sera préférable d'ajuster la largeur des colonnes en
+fonction du contenu réel. C'est là que la fonction `autofit()` entre en jeu.
+
+La fonction `autofit()` permet de régler automatiquement la largeur des colonnes
+en fonction du contenu présent dans chaque colonne. En utilisant cette fonction,
+les colonnes du flextable s'ajusteront pour s'adapter au contenu le plus large
+de chaque colonne. Cela garantit que le tableau final est esthétiquement
+agréable et que toutes les données sont affichées correctement, sans
+troncature.
+
+```{r}
+flextable(dat) %>% autofit()
+```
+
+Il est aussi possible de définir un ajustement automatique géré par le moteur de
+document utilisé! C'est à dire qu'on laisse la responsabilité à Word, au
+navigateur Web ou au lecteur PDF de définir librement et *au mieux* la taille
+des colonnes pour optimiser l'affichage du tableau dans le document. Pour
+utliser cette option, il faut alors définir une propriété du tableau nommée
+`layout='autofit'` qui sera définie avec la fonction `set_table_properties()` :
+
+
+```{r}
+flextable(dat) %>% set_table_properties(layout = "autofit")
+```
+
+Par défaut, ce layout est défini à `fixed`, dans ce cas seulement, la fonction
+`autofit()` aura un effet. Dans le cas du layout défini à `autofit`, les tailles
+de colonnes ne seront pas inscrites dans la sortie (attention, la sortie PPTX ne
+supporte pas le layout 'autofit' mais seulement 'fixed').
+
+Par la suite, on utilisera le plus souvent `autofit()`.
+
+## Formater le contenu
+
+Le contenu peut être composé comme le résultat d'une concaténation de plusieurs
+morceaux, les morceaux pouvant même être des images ou des graphiques mais en
+général plutôt des textes.
+
+Par défaut, le contenu affiché de chaque cellule sera le résultat d'une simple
+mise en forme, la fonction `format()` est appelée pour ce simple affichage.
+L'objectif est de fournir à peu près le même affichage que dans votre console R. 
+
+### Les fonctions colformat
+
+Toutefois, il est fréquent d'avoir besoin d'un affichage spécifique.
+
+A moins de créer des contenus composites, les fonctions `colformat_*()`
+suffiront. S'il s'agit d'une colonne de chaînes de caractères, elle restera
+telle quelle, s'il s'agit de nombres, elle sera transformée en une chaîne de
+caractères avec un nombre de décimales, s'il s'agit d'une date, elle sera
+transformée en une chaîne de caractères représentant une date, et ainsi de
+suite. Vous pouvez contrôler ces options avec les fonctions
+`colformat_double()`, `colformat_int()`, `colformat_char()`, `colformat_date()`,
+etc.
+
+Les paramètres principaux de ces fonctions peuvent être définis avec
+`set_flextable_defaults()`, c'est même encouragé afin de réduire le code et
+d'homogénéiser les sorties :
+
+```{r}
+set_flextable_defaults(decimal.mark = ",", digits = 3, big.mark = " ")
+```
+
+On vient de préciser que par défaut le séparateur des décimales est "," et que
+le nombre de chiffres après la virgule doit être de 3.
+
+```{r}
+flextable(head(ggplot2::diamonds)) %>%
+  colformat_double() %>%
+  colformat_int(j = "price", suffix = "$") %>%
+  autofit()
+```
+
+Il est bien sûr toujours possible de préciser une autre valeur :
+
+```{r}
+flextable(head(cars)) %>%
+  colformat_double(digits = 0) %>%
+  autofit()
+```
+
+#### Les paramètres de colformat
+
+Comme vous l'avez peut-être remarqué dans l'exemple d'avant, on peut utiliser la
+notion de préfixe. D'autres paramètres sont disponibles :
+
+  - `prefix` et `suffix` permettent de préciser un préfixe et ou un suffixe à
+    utiliser.
+  - `na_str` permet de préciser quelle valeur afficher à la place des valeurs
+    manquantes.
+
+
+Pour les chiffres, en général, on peut préciser :
+
+  - `big.mark`, le séparateur des milliers
+  - `decimal.mark`, le séparateur décimal
+  - `digits`, le nombre de chiffres après la virgule.
+
+```{r}
+ft <- flextable(head(airquality))
+ft <- colformat_int(
+  x = ft,
+  na_str = "N/A"
+)
+autofit(ft)
+```
+
+
+Il n'est jamais nécessaire de changer ses données en chaînes de caractères
+pré-formattées, il est vivement recommandé d'utiliser plutôt ces paramètres.
+Ainsi, vous gardez la possibilité de faire du formattage conditionnel sur les
+valeurs numériques.
+
+### Les tabulations et les retours chariot
+
+Lorsque vous travaillez avec flextable, si une chaîne de caractères 
+contient `\n` elle sera traitée comme un retour à la ligne (et non 
+comme un nouveau paragraphe !). Si une chaîne de caractères contient 
+`\t`, elle sera traitée comme une tabulation.
+
+```{r}
+data.frame(
+  `co\nco` = paste0(c("\t", "\t\t", "\t\t\t"), 1:3),
+  check.names = FALSE
+) %>% flextable()
+```
+
+Nous ne recommandons pas de modifier vos données pour qu'elles contiennent `\n`
+ou `\t`. Nous recommandons plutôt d'utiliser `mk_par()`, `prepend_chunks()` ou
+`append_chunks()`. 
+
+```{r}
+adsl <- dplyr::select(formatters::ex_adsl, AGE, SEX, COUNTRY, ARM)
+
+ft <- summarizor(adsl, by = "ARM") %>%
+  as_flextable(
+    sep_w = 0, separate_with = "variable",
+    spread_first_col = TRUE
+  ) %>%
+  align(i = ~ !is.na(variable), align = "left")
+ft
+```
+
+Par exemple, voici comment utiliser `prepend_chunks()` pour ajouter
+une tabulation devant les valeurs où `variable` est manquante et donc
+qui représente une sous-catégorie.
+
+```{r}
+prepend_chunks(ft, i = ~ is.na(variable), j = "stat", as_chunk("\t"))
+```
+
+### Remplacement des textes affichés
+
+La fonction `labelizor()` vont vous permettre de remplacer les valeurs affichées d'un tableau mobile par d'autres textes. Vous pouvez soit utiliser des textes associés au nom qui correspond aux occurences à remplacer, soit utiliser une fonction.
+
+Illustrons ces deux options avec un tableau représentant une agrégation. Partons d'un tableau d'agrégation simple :
+
+```{r}
+library(palmerpenguins)
+
+dat <- penguins %>%
+  select(species, island, ends_with("mm")) %>%
+  group_by(species, island) %>%
+  summarise(
+    across(
+      where(is.numeric),
+      .fns = list(
+        avg = ~ mean(.x, na.rm = TRUE),
+        sd = ~ sd(.x, na.rm = TRUE)
+      )
+    ),
+    .groups = "drop"
+  ) %>%
+  rename_with(~ tolower(gsub("_mm_", "_", .x, fixed = TRUE)))
+
+ft_pen <- flextable(dat) %>%
+  colformat_double() %>%
+  separate_header() %>%
+  theme_vanilla() %>%
+  align(align = "center", part = "all") %>%
+  valign(valign = "center", part = "header") %>%
+  autofit()
+ft_pen
+```
+
+Remplaçons d'abord les noms des colonnes "avg" et "sd" par les mots
+"Mean" et "Standard Deviation".
+
+```{r}
+ft_pen <- labelizor(
+  x = ft_pen,
+  part = "header",
+  labels = c("avg" = "Mean", "sd" = "Standard Deviation")
+)
+ft_pen
+```
+
+Et maintenant, formatons les en-têtes avec une lettre en 
+majuscule pour la première lettre et les autres lettres en 
+minuscule :
+
+
+```{r}
+ft_pen <- labelizor(
+  x = ft_pen,
+  part = "header",
+  labels = stringr::str_to_title
+)
+ft_pen
+```
+
+## Les caractéristiques visuelles
+
+```{r}
+dat <- data.frame(
+  wool = c("A", "B"),
+  L = c(44.56, 28.22),
+  M = c(24, 28.77),
+  H = c(24.56, 18.78)
+)
+```
+
+### Les fonctions de formattage visuel
+
+Il existe des fonctions simples pour modifier une propriété de formatage :
+
+* Le texte peut être formaté avec les fonctions `bold()`, `italic()`, `color()`, `fontsize()`, `font()`, `highlight()`
+
+```{r}
+flextable(dat) %>%
+  fontsize(i = ~ wool %in% "A", size = 10) %>%
+  font(part = "all", fontname = "Inconsolata") %>%
+  color(part = "header", color = "#e22323", j = c("L", "M", "H")) %>%
+  bold(part = "header", j = c("L", "M")) %>%
+  italic(part = "all", j = "wool") %>%
+  highlight(i = ~ L < 30, color = "wheat", j = c("M", "H"))
+```
+
+* Les paragraphes avec les fonctions `line_spacing()`, `padding()` et `align()`,
+
+```{r}
+ft <- flextable(dat) %>%
+  align(align = "center", part = "all") %>%
+  line_spacing(space = 2, part = "all") %>%
+  padding(padding = 6, part = "header")
+ft
+```
+
+* Les cellules avec les fonctions `bg()`, `valign()` et `hrule()`.
+
+```{r}
+ft %>%
+  bg(bg = "black", part = "all") %>%
+  color(color = "white", part = "all") %>%
+  merge_at(i = 1:2, j = 1) %>%
+  valign(i = 1, valign = "bottom")
+```
+
+Les couleurs d'arrière-plan, les couleurs de police et les couleurs de
+surbrillance peuvent être modifiées avec un vecteur ou avec une fonction qui
+renvoie un vecteur de caractères de couleurs (comme avec 'ggplot2' - voir
+`scales::col_numeric`).
+
+```{r}
+myft <- as.data.frame(matrix(runif(5 * 5), ncol = 5)) %>%
+  flextable() %>%
+  colformat_double() %>%
+  autofit() %>%
+  align(align = "center", part = "all") %>%
+  bg(bg = "black", part = "header") %>%
+  color(color = "white", part = "all") %>%
+  bg(bg = scales::col_numeric(palette = "viridis", domain = c(0, 1)))
+myft
+```
+
+La rotation du texte des cellules est une autre option qui peut être utilisée -
+il est recommandé de l'utiliser avec `hrule(rule = "exact")` lorsque la sortie
+est Word ou PowerPoint.
+
+```{r tab.cap="démonstration de rotation du texte des cellules"}
+myft <- myft %>%
+  rotate(rotation = "tbrl", part = "header", align = "center") %>%
+  height(height = 1, unit = "cm", part = "header") %>%
+  hrule(rule = "exact", part = "header") %>%
+  align(align = "right", part = "header")
+myft
+```
+
+### Bordures
+
+#### Bordures intérieures et extérieures
+
+Si aucune mise en forme conditionnelle n'est nécessaire, utilisez
+`border_outer()`, `border_inner_h()` et `border_inner_v()`. Ce sont les
+fonctions les plus simples et elles satisfont la plupart des cas d'utilisation.
+
+```{r tab.cap="démonstration des bordures intérieures et extérieures"}
+library(officer)
+big_border <- fp_border(color = "red", width = 2)
+small_border <- fp_border(color = "gray", width = 1)
+
+myft <- flextable(head(airquality))
+myft <- border_remove(x = myft)
+myft <- border_outer(myft, part = "all", border = big_border)
+myft <- border_inner_h(myft, part = "all", border = small_border)
+myft <- border_inner_v(myft, part = "all", border = small_border)
+myft
+```
+
+#### Ajouter des lignes
+
+Lorsqu'une plus grande maîtrise de la mise en forme des bordures est nécessaire,
+les fonctions suivantes peuvent être utilisées pour ajouter des lignes
+verticales ou horizontales comme bordures :
+
+  - `hline()`: définir les bordures inférieures (horizontales intérieures)
+  - `vline()`: définir les bordures droites (verticales intérieures)
+  - `hline_top()`: définir la bordure supérieure (horizontale extérieure)
+  - `hline_bottom()`: définir la bordure inférieure (horizontale extérieure)
+  - `vline_left()`: définir la bordure gauche (verticale extérieure)
+  - `vline_right()`: définir la bordure droite (verticale extérieure)
+
+```{r}
+myft2 <- border_remove(myft)
+
+myft2 <- vline(myft2, border = small_border, part = "all")
+myft2 <- vline_left(myft2, border = big_border, part = "all")
+myft2 <- vline_right(myft2, border = big_border, part = "all")
+myft2 <- hline(myft2, border = small_border)
+myft2 <- hline_bottom(myft2, border = big_border)
+myft2 <- hline_top(myft2, border = big_border, part = "all")
+myft2
+```
+
+Ces fonctions prennent également en charge les sélecteurs de 
+lignes `i` et de colonnes `j`.
+
+### Fonctions de thème
+
+Les fonctions de thème ne sont pas comme les thèmes 'ggplot2'. Elles sont
+appliquées à la table existante **immédiatement**. Les fonctions de thème
+doivent être appliquées après l'ajout de tous les éléments de la table.
+
+Si vous souhaitez appliquer automatiquement une fonction de thème à chaque
+flextable, vous pouvez utiliser l'argument `theme_fun` de
+`set_flextable_defaults()` ; soyez conscient que cette fonction de thème est
+appliquée en tant que dernière instruction lors de l'appel de `flextable()` -
+donc si vous ajoutez des en-têtes ou des pieds de page au tableau, ils ne seront
+pas formatés avec le thème.
+
+Vous pouvez également utiliser l'argument `post_process_html` de
+`set_flextable_defaults()` (ou `post_process_pdf`, `post_process_docx`,
+`post_process_pptx`) pour spécifier un thème à appliquer systématiquement avant
+l'impression de `flextable()`. Assurer vous bien que votre thème ne remplace pas
+la mise en forme effectuée avant l'instruction d'impression.
+
+#### Thèmes disponibles
+
+```{r}
+ft <- flextable(head(airquality))
+ft <- add_header_row(ft,
+  top = TRUE,
+  values = c("mesures", "temps"),
+  colwidths = c(4, 2)
+)
+ft <- align(ft, i = 1, align = "center", part = "header")
+ft <- width(ft, width = .75)
+```
+
+* `theme_booktabs()` est le thème par défaut. Il ajoute 
+des bordures, aligne le texte à gauche dans les colonnes de 
+texte et aligne à droite dans les colonnes non textuelles.
+
+```{r}
+theme_booktabs(ft)
+```
+
+* `theme_alafoli()` offre un aspect gris clair :
+
+```{r}
+theme_alafoli(ft)
+```
+
+* `theme_vader()` offre un aspect sombre :
+
+```{r}
+theme_vader(ft)
+```
+
+* `theme_box()` n'est pas joli mais utile lors de la création d'un tableau si vous voulez vous assurer que la mise en page que vous définissez est exactement comme prévu :
+
+```{r}
+theme_box(ft)
+```
+
+* `theme_vanilla()` ressemble à `theme_booktabs()` mais comporte des lignes horizontales fines séparant les lignes :
+
+```{r}
+theme_vanilla(ft)
+```
+
+* `theme_zebra()` vous permet de créer des tableaux zébrés
+* `theme_tron_legacy()` et `theme_tron()` sont des thèmes sombres.
+
+#### Définir votre propre thème
+
+Vous pouvez facilement définir votre propre thème en créant une fonction.
+
+```{r}
+mon_theme <- function(x, ...) {
+  x <- colformat_double(x, big.mark = "'", decimal.mark = ",", digits = 1)
+  x <- set_table_properties(x, layout = "fixed")
+  x <- border_remove(x)
+  std_border <- fp_border(width = 1, color = "orange")
+  x <- border_outer(x, part = "all", border = std_border)
+  x <- border_inner_h(x, border = std_border, part = "all")
+  x <- border_inner_v(x, border = std_border, part = "all")
+  autofit(x)
+}
+mon_theme(ft)
+```
+
+## Les en-têtes et pieds de tableau
+
+Les en-têtes, les pieds (et le corps) du tableau peuvent être complétés par des
+lignes et les valeurs affichées peuvent être modifiées.
+
+### Séparer les noms de colonnes en plusieurs lignes
+
+Quand les noms des colonnes contiennent plusieurs labels (résultant d’une
+concaténation par exemple), il est possible de les répartir et organiser sur
+plusieurs lignes très simplement en utilisant la fonction `separate_header()`. 
+
+
+```{r}
+ft <- flextable(head(iris))
+separate_header(ft)
+```
+
+C’est particulièrement utile pour présenter des agrégations réalisées 
+avec la fonction `dplyr::summarise()`.
+
+```{r}
+library(palmerpenguins)
+
+dat <- penguins %>%
+  select(species, island, ends_with("mm")) %>%
+  group_by(species, island) %>%
+  summarise(
+    across(
+      where(is.numeric),
+      .fns = list(
+        avg = ~ mean(.x, na.rm = TRUE),
+        sd = ~ sd(.x, na.rm = TRUE)
+      )
+    ),
+    .groups = "drop"
+  )
+dat
+
+ft_pen <- flextable(dat) %>%
+  separate_header() %>%
+  align(align = "center", part = "all") %>%
+  theme_box() %>%
+  colformat_double(digits = 2) %>%
+  autofit()
+ft_pen
+```
+
+### Modifier les libellés d'en-tête
+
+Utilisez `set_header_labels()` pour remplacer les étiquettes de la ligne
+inférieure de l'en-tête. Lorsque le tableau est créé, leurs valeurs sont les
+noms des colonnes du data.frame.
+
+```{r}
+ft <- flextable(head(airquality))
+ft <- set_header_labels(ft,
+  Solar.R = "Solar R (lang)",
+  Temp = "Temperature (degrees F)", Wind = "Wind (mph)",
+  Ozone = "Ozone (ppb)"
+)
+ft <- set_table_properties(ft, layout = "autofit", width = .8)
+ft
+```
+
+
+### Ajouter des lignes dans l'en-tête ou le pied du tableau
+
+De nouvelles lignes d'en-tête peuvent être ajoutées en haut ou en bas de
+l'en-tête.
+
+Les fonctions nommées ci-dessous doivent être utilisées pour ajouter une ligne
+d'en-tête (ou de pied de page) :
+
+  - La plupart des besoins seront satisfaits par les fonctions
+    `add_header_row()` et `add_footer_row()`. Il s'agit de fonctions qui vous
+    permettent d'ajouter une seule ligne d'étiquettes (qui peuvent être
+    affichées le long d'une ou de plusieurs colonnes dans la nouvelle ligne).
+  - Les fonctions `add_header()` et `add_footer()` sont des fonctions qui vous
+    permettent d'ajouter plusieurs valeurs (une pour chaque nouvelle ligne) pour
+    une colonne donnée.
+  - Les fonctions `add_footer_lines()` et `add_header_lines()` sont des
+    fonctions qui ajoutent des étiquettes sur une ligne où toutes les colonnes
+    sont fusionnées.
+
+Nous allons principalement démontrer les en-têtes mais la même chose peut être
+appliquée aux pieds de page.
+
+#### Ajouter une ligne d'en-tête
+
+Utilisez la fonction `add_header_row()` : ajoutez une ligne d'en-tête où des
+libellés sont associés à un nombre de colonnes à fusionner.
+
+```{r}
+ft <- add_header_row(
+  x = ft, values = c("mesures de la qualité de l'air", "temps"),
+  colwidths = c(4, 2)
+)
+ft <- theme_box(ft)
+ft
+```
+
+#### Ajouter des lignes de texte
+
+Utilisez la fonction `add_header_lines()` : ajoutez des libellés dans de
+nouvelles lignes d'en-tête (toutes les colonnes sont fusionnées).
+
+```{r}
+ft <- add_header_lines(ft,
+  values = c(
+    "c'est une première ligne",
+    "c'est une deuxième ligne"
+  )
+)
+theme_box(ft)
+```

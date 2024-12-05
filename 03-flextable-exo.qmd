@@ -1,0 +1,153 @@
+
+{{< include _init.qmd >}}
+
+```{r include=FALSE}
+library(flextable)
+library(tidyverse)
+```
+
+
+
+# Pratique simple de flextable
+
+## Tableau des cancers en 2021
+
+
+On va travailler sur un jeu de données présenté sur le site https://data.ameli.fr/pages/data-pathologies/. Le jeu présente quelques statistiques sur le cancer en 2021.
+
+On vous demande de construire de façon itérative un tableau présentant simplement
+les données tout en suivant quelques règles de formatage.
+
+### Importation des données
+
+Importez les données contenues dans le fichier [data/cancers-2021.parquet](data/cancers-2021.parquet).
+Triez les selon les valeurs de la colonne `effectif` par ordre descendant.
+
+```{r}
+library(dplyr)
+cancers <- arrow::read_parquet("data/cancers-2021.parquet") %>% 
+  arrange(desc(effectif))
+cancers
+```
+
+### Paramètres globaux
+
+Utilisez la fonction `set_flextable_defaults()` et définissez :
+
+- "Arial" comme la police de caractères par defaut,
+- les séparateurs de milliers doivent être représentés par un blanc (" "),
+- le séparateur de décimale doit être le caractère ",".
+
+```{r}
+set_flextable_defaults(
+  font.family = "Arial",
+  big.mark = " ",
+  decimal.mark = ",",
+  post_process_all = function(z) {
+    autofit(z)
+  }
+)
+```
+
+Vous pouvez tester le rendu avec l'appel suivant :
+
+```{r echo=TRUE}
+flextable(cancers)
+```
+
+### Choisir les colonnes affichées
+
+Imprimez les colonnes `c("name", "prevalence", "effectif")` en utilisant l'argument `col_keys` de la fonction `flextable`. 
+
+```{r}
+ft <- flextable(cancers, col_keys = c("name", "prevalence", "effectif"))
+ft
+```
+
+### Formatez les contenus
+
+- La colonne `effectif` doit ne comporter aucun chiffre après la virgule.
+- La colonne `prevalence` doit comporter deux chiffres après la virgule et 
+doit terminer par " %".
+
+```{r}
+ft <- ft %>% 
+  colformat_double(digits = 0, j = "effectif") %>% 
+  colformat_double(digits = 2, j = "prevalence", suffix = " %")
+ft
+```
+
+### Gérer l'entête
+
+- Les colonnes `prevalence` et `effectif` doivent avoir comme label "Prévalence" et 
+"Nombre de cas".
+- Les noms de colonnes doivent être précédés des annotations `c("Cancers", "Effectif | en France | tous âges | tous sexes | 2021")`.
+- Le bas du tableau doit présenter l'information suivante : "Les effectifs comptabilisent le nombre de patients pris en charge pour chacune des pathologies (ou traitements chroniques ou épisodes de soins) du groupe.".
+
+```{r}
+ft <- ft %>% 
+  set_header_labels(name = "", prevalence = "Prévalence", effectif = "Nombre de cas") %>% 
+  add_header_lines(c("Cancers", "Effectif | en France | tous âges | tous sexes | 2021"),
+                   top = TRUE) %>% 
+  add_footer_lines("Les effectifs comptabilisent le nombre de patients pris en charge pour chacune des pathologies (ou traitements chroniques ou épisodes de soins) du groupe.")
+ft
+```
+
+### Finaliser la mise en forme
+
+- Utilisez le thème `theme_vanilla()`,
+- la ligne du pied du tableau doit être en italique (utilisez `italic()`),
+- demensionnez automatiquement les largeurs de colonnes pour les 
+ajuster au contenu avec la fonction `autofit()`.
+
+```{r}
+ft <- ft %>% 
+  theme_vanilla() %>% 
+  italic(italic = TRUE, part = "footer") %>% 
+  autofit()
+ft
+```
+
+
+## Modèle probit
+
+Réutilisez le code suivant pour obtenir le modèle à manipuler.
+
+```{r echo=TRUE}
+dat <- attitude
+dat$high.rating <- (dat$rating > 70)
+probit.model <- glm(high.rating ~ learning + critical +
+                      advance, data = dat, family = binomial(link = "probit"))
+print(probit.model)
+```
+
+### Transformer l'object en flextable
+
+- Utilisez `as_flextable()` pour transformer `probit.model` en flextable.
+- Pour ne pas imprimer les étoiles de significativité, utilisez au préalable 
+l'option `options(show.signif.stars = FALSE)`.
+- Supprimez le pied du tableau avec la commande `delete_part(part = "footer")`.
+
+```{r}
+options(show.signif.stars = FALSE)
+ft <- as_flextable(probit.model) %>% 
+  delete_part(part = "footer")
+ft
+```
+
+- Annoter le tableau en ajoutant au dessus des 3 premières colonnes de l'en-tête 
+"Estimations" et des 2 dernières colonnes "Inférence". Utilisez `add_header_row()`
+pour cela,
+- Utilisez le thème `theme_vanilla()`,
+- Colorez en gris les lignes où la p-value (colonne nommée `p.value`) est supérieure
+à 0.05.
+
+```{r}
+ft <- ft %>% 
+  add_header_row(values = c("Estimations", "Inférence"), colwidths = c(3, 2), top = TRUE) %>% 
+  theme_vanilla() %>% 
+  color(i = ~ p.value > 0.05, color = "gray")
+  
+ft
+```
+

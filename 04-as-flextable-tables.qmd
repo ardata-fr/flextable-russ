@@ -1,0 +1,89 @@
+
+{{< include _init.qmd >}}
+
+```{r include=FALSE}
+library(flextable)
+library(tidyverse)
+```
+
+
+
+# 'flextable' et le package 'tables'
+
+## tables
+
+Le package 'tables' <https://dmurdoch.github.io/tables/> fournit une interface basée sur un système de formules pour calculer le contenu des tableaux et pour les formater. 
+
+Il a été très inspiré par `SAS PROC TABULATE`.
+
+L'utilisateur peut créer un objet *tableau* en spécifiant une formule, avec le côté gauche indiquant les lignes et le côté droit indiquant les colonnes. La formule décrit les fonctions de résumé à appliquer et la manière de les organiser. Les objets peuvent être filtrés ou combinés en utilisant des opérations similaires à celles des matrices. Les tableaux peuvent être rendus sous forme de texte brut, de code LaTeX pour apparaître dans un document PDF, ou de code HTML pour un document web.
+
+## Un exemple de tableau d'évènements indésirables
+
+On va avoir besoin de deux tables "cliniques". 
+
+```{r}
+ex_adae <- formatters::ex_adae
+ex_adae
+ex_adsl <- formatters::ex_adsl
+ex_adsl
+```
+
+On va préparer quelques pré-calculs et deux fonctions de résumé.
+
+```{r}
+subject_counts <- table(ex_adsl$ARM)
+
+countpercentid <- function(num, ARM) {
+  n <- length(unique(num))
+  if (n == 0) {
+    pct <- 0
+  } else {
+    pct <- 100*n/subject_counts[ARM[1]]
+  }
+  sprintf("%d (%.2f%%)", length(unique(num)), pct)
+}
+
+count <- function(x) sprintf("(N=%d)", length(x))
+
+```
+
+On peut enfin exprimer le tableau de suivi des évènements indésirables
+avec 'tables'.
+
+```{r}
+library(tables)
+body <- tabular( 
+  Heading("Patients with at least one event")*1*
+    Heading("")*countpercentid*Arguments(ARM = ARM)*
+    Heading()*USUBJID +
+    Heading("Total number of events")*1*Heading("")*1 +
+    Heading()*AEBODSYS*
+    (Heading("Patients with at least one event")*
+       Percent(denom = ARM, fn = countpercentid)*
+       Heading()*USUBJID +
+       Heading("Total number of events")*1 +
+       Heading()*AEDECOD*DropEmpty(which = "row")*
+       Heading()*Percent(denom = ARM, fn = countpercentid)*
+       Heading()*USUBJID) ~ 
+    Heading()*ARM, 
+data = ex_adae )
+```
+
+```{r}
+body
+```
+
+## La fonction as_flextable
+
+```{r}
+library(flextable)
+as_flextable(body, spread_first_col = TRUE, add_tab = TRUE) |>
+  align(j = 1, part = "all", align = "left") |> 
+  padding(padding = 4, part = "all") |> 
+  add_header_row(
+    values = c("", fmt_header_n(subject_counts, newline = FALSE)),
+    top = FALSE) |> 
+  hline(i = 1, part = "header", border = fp_border_default(width = 0))
+```
+

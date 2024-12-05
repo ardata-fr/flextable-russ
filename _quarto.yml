@@ -1,0 +1,45 @@
+project:
+  type: book
+lang: fr
+language:
+  title-block-author-single: Publié par
+book:
+  search:
+    location: sidebar
+    type: overlay
+  sidebar:
+    footer: |
+      Écrit par [![](static/assets/img/ardata-logo.png){fig-alt="ArData" width=70px}](https://www.ardata.fr/)
+  favicon: static/assets/img/favicon-32x32.png
+  downloads:
+  - pdf
+  author: ArData
+  title: Reporting tabulaire en R avec le package ’flextable’
+  date: '2024-12-06'
+  chapters:
+  - index.qmd
+  - 01-flextable-intro.qmd
+  - 02-as-flextable.qmd
+  - 03-flextable-exo.qmd
+  - 04-as-flextable-tables.qmd
+  - 05-grid.qmd
+bibliography: References.bib
+citeproc: true
+link-citations: true
+format:
+  html:
+    theme: cosmo
+    css:
+    - static/assets/fonts/google/css/fira-code.css
+    - static/assets/fonts/google/css/fira-sans-condensed.css
+    - static/assets/css/style.css
+    code-link: true
+    toc: true
+    toc-expand: true
+    toc-title: Sommaire
+    toc-depth: 5
+    number-sections: true
+    code-fold: show
+    code-copy: true
+    highlight-style: kate
+editor: source

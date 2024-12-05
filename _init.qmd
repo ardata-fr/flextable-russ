@@ -1,0 +1,83 @@
+
+
+
+```{r include=FALSE}
+
+# Execute in other qmd files by calling {{< include _init.qmd >}}
+
+
+library(knitr)
+library(flextable)
+
+#Load options
+options <- yaml::yaml.load_file('_options.yml', handlers=list(logical=traindown:::verbatim_logical))
+for (name in names(options)) {
+  assign(x = name, value = options[[name]], envir = .GlobalEnv)
+}
+
+#For backwards compatibility when calling just show_answer and not options$show_answer
+list2env(options, envir = globalenv())
+
+
+# Additions to temp file paths so they don't cause latex error with "C:"
+tempfile <- function(...) {
+  base::tempfile(...) |> normalizePath(winslash = '/', mustWork = FALSE)
+}
+tempdir <- function(...) {
+  base::tempdir(...)|> normalizePath(winslash = '/', mustWork = FALSE)
+}
+
+
+
+rmd_file_show <- function(path) {
+  x <- list(path = path)
+  class(x) <- "rmd_file_show"
+  x
+}
+
+knit_print.rmd_file_show <- function(x, echo=FALSE, ...) {
+  str <- c("````markdown", 
+           readLines(con = x$path),
+           "````"
+           ) |> paste0(collapse = "\n")
+  asis_output(str)
+}
+
+gdtools::register_gfont("Open Sans")
+
+opts_chunk$set(ft.tabcolsep = 2)
+
+flextable::set_flextable_defaults(
+  font.family = "Open Sans",
+  scroll = list()
+)
+
+if (is_latex_output()) {
+  flextable::set_flextable_defaults(
+    font.size = 9,
+    arraystretch = 1.3,
+    table.layout = "autofit"
+  )
+}
+
+
+# The old scripts/rmd-scripts.R that was pasted into each script
+library(knitr)
+
+opts_chunk$set(
+    dev = "ragg_png", dpi = 150,
+    collapse = TRUE,
+    dev.args = list(
+        background = "transparent",
+        pointsize = 12
+    )
+)
+
+if (options$use_df_printer) {
+  use_df_printer()
+}
+
+
+
+
+```

@@ -1,0 +1,10 @@
+{{< include _init.qmd >}}
+
+
+# Introduction
+
+Le principal objectif de 'flextable' est de fournir une solution efficace pour 
+la création et la mise en forme de tableaux.
+
+La principale source de documentation est ici : <https://ardata-fr.github.io/flextable-book/>
+

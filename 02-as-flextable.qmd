@@ -1,0 +1,103 @@
+
+{{< include _init.qmd >}}
+```{r include=FALSE}
+library(flextable)
+library(tidyverse)
+```
+
+
+
+# La fonction as flextable
+
+
+## Récupérer un flextable depuis un modèle R 
+
+Les modèles usuels, tels que les modèles mixtes, les modèles GAM, les modèles
+linéaires généralisés mais aussi les tests et certaines classifications peuvent
+être transformés en flextable avec la fonction `as_flextable()`.
+
+### GLM 
+
+```{r}
+clotting <- data.frame(
+    u = c(5,10,15,20,30,40,60,80,100),
+    lot1 = c(118,58,42,35,27,25,21,19,18),
+    lot2 = c(69,35,26,21,18,16,13,12,12))
+as_flextable(glm(lot1 ~ log(u), data = clotting, family = Gamma))
+```
+
+### LM 
+
+```{r}
+ctl <- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
+trt <- c(4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69)
+group <- gl(2, 10, 20, labels = c("Ctl","Trt"))
+weight <- c(ctl, trt)
+lm(weight ~ group) %>% as_flextable()
+```
+
+### GAM 
+
+```{r message=FALSE}
+library(mgcv)
+set.seed(2)
+
+dat <- gamSim(1, n = 400, 
+  dist = "normal", scale = 2, verbose = FALSE)
+b <- gam(y ~ s(x0) + s(x1) + s(x2) + s(x3), 
+  data = dat)
+
+ft <- as_flextable(b)
+ft
+```
+
+### Test d'hypothèse
+
+```{r}
+x <- rnorm(50)
+y <- runif(30)
+ks.test(x, y) %>% as_flextable()
+```
+
+### kmeans
+
+```{r}
+cl <- kmeans(scale(mtcars[1:7]), 5)
+ft <- as_flextable(cl)
+ft
+```
+
+### pam
+
+```{r}
+library(cluster)
+dat <- as.data.frame(scale(mtcars[1:7]))
+cl <- pam(dat, 3)
+ft <- as_flextable(cl)
+ft
+```
+
+## Résumé simple
+
+L'utilisation de la fonction `summarizor()` suivi de `as_flextable()` est
+un moyen simple de produire des tableaux de résumé qui 
+présentent les statistiques univariées de chaque colonne.
+
+Une option permet d'ajouter une catégorie "global" à la fin du tableau produit.
+
+```{r}
+library(dplyr)
+library(flextable)
+z <- palmerpenguins::penguins %>% 
+  select(-contains("length")) %>% 
+  summarizor(
+    by = "species",
+    overall_label = "Overall")
+
+ft <- as_flextable(z, spread_first_col = TRUE) %>% 
+  style(i = ~!is.na(variable), pr_t = fp_text_default(bold = TRUE),
+        pr_p = officer::fp_par(text.align = "left", padding = 5, line_spacing = 1.5)) %>% 
+  prepend_chunks(i = ~is.na(variable), j = 1, as_chunk("\t")) %>% 
+  autofit(add_w = .01)
+ft
+```

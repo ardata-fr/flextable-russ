@@ -1,0 +1,224 @@
+
+{{< include _init.qmd >}}
+
+```{r include=FALSE}
+library(flextable)
+library(tidyverse)
+```
+
+
+
+# 'flextable' et les grid graphics
+
+Une des fonctionnalités du package flextable est la capacité à
+travailler avec un format 'grid graphics'. La fonction `gen_grob()` génére 
+un 'grob' (Graphical Object) à partir d'un flextable, ce dernier peut ensuite 
+être ajouté à un graphique ggplot grace au package 'patchwork' ou avec 
+le package 'grid'.
+
+Ces fonctionnalités nécessitent l'utilisation d'une sortie graphique 
+utilisant 'systemfonts' : `svglite::svglite()`, `ragg::agg_png()` ou `ggiraph::dsvg()`.
+Ces packages doivent être utilisés pour garantir que toutes les polices que 
+vous utilisez seront reconnues par le moteur graphique R.
+
+## Illustration avec grid
+
+### Créer un tableau
+
+```{r}
+library(palmerpenguins)
+ft <- as_flextable(penguins)
+ft
+```
+
+
+### Utilisation de gen_grob et de grid
+
+Le seul élément de flextable à utiliser est la fonction `gen_grob()`, le 
+reste du code concerne des opérations 'grid'.
+
+```{r}
+library(grid)
+grid.raster(magick::image_read("img/lter_penguins.png"))
+grid.rect(gp = gpar(col = "transparent", fill = radialGradient(
+  colours = c(
+    adjustcolor("white", .6),
+    adjustcolor("#f2af00", .8),
+    adjustcolor("#c32900", .7)
+  ),
+  stops = c(0, .7, 1)
+)))
+grid.text(y = .1, x = .95, just = "right",
+  label = "Size measurements for adult foraging penguins near Palmer Station, Antarctica", 
+  gp = gpar(col = "white", fontsize = 10, fontfamily = "Open Sans", fontface = "italic"))
+grid.text(y = .9, 
+  label = "Made with packages 'grid', 'flextable', 'ragg' and 'palmerpenguins'", 
+  gp = gpar(col = "white", fontsize = 14, fontfamily = "Permanent Marker"))
+
+pushViewport(viewport(width = .95, height = .75, gp = gpar(col = "transparent")))
+grid.circle(gp = gpar(fill = adjustcolor("white", .9)), r = .4)
+grid.draw(gen_grob(ft, just = "center", scaling = "min", fit = "width"))
+popViewport()
+```
+
+## Superposer avec un ggplot
+
+La dataviz dont nous nous sommes inspiré est disponible à l'adresse <https://insights.datylon.com/stories/oDHVikVxaCaCGWRFGMdPgA>.
+
+### Récupérer les données
+
+```{r}
+library(readxl)
+library(tidyverse)
+library(magick)
+
+scoring_data <- read_excel("data/default_workbook.xlsx",
+           sheet = "Scoring data") %>% 
+  rename(name = NAME, pts = PTS, fgp = "FG%", group = Group) %>% 
+  mutate(pts = as.double(pts),
+         fgp = as.double(fgp))
+scoring_data
+```
+
+Pour les images du tableau, il faut créer manuellement un data.frame.
+On va télécharger chaque image dans un fichier temporaire car flextable 
+ne gère que les images disponible localement.
+
+```{r}
+head_shot <- tibble::tribble(
+  ~name, ~url,
+  "Joel Embiid", "https://cdn.nba.com/headshots/nba/latest/1040x760/203954.png",
+  "LeBron James", "https://cdn.nba.com/headshots/nba/latest/1040x760/2544.png",
+  "Giannis Antetokounmpo", "https://cdn.nba.com/headshots/nba/latest/1040x760/203507.png",
+  "Kevin Durant", "https://cdn.nba.com/headshots/nba/latest/1040x760/201142.png",
+  "Trae Young", "https://cdn.nba.com/headshots/nba/latest/1040x760/1629027.png",
+  "Luka Doncic", "https://cdn.nba.com/headshots/nba/latest/1040x760/1629029.png"
+) %>% 
+  mutate(url = map_chr(url, function(z) {
+    path <- tempfile(fileext = ".png")
+    image_read(z) %>% 
+      image_resize(geometry = "144x") %>% 
+      image_write(path = path)
+    path
+  }))
+```
+
+Le tableau 'Q3_data' va être utilisé lors de la construction du ggplot.
+
+```{r}
+Q3_data <- summarise(scoring_data, 
+          pts = quantile(pts, probs = .75),
+          fgp = quantile(fgp, probs = .75)
+          )
+Q3_data
+```
+
+Le tableau 'scoring_highlight' va être le tableau principal.
+
+```{r}
+scoring_highlight <- scoring_data %>% 
+  arrange(desc(pts), desc(fgp)) %>% 
+  slice_max(pts, n = 6) %>%
+  left_join(head_shot, by = "name")
+scoring_highlight
+```
+
+### Créer le flextable
+
+```{r}
+theme_scorer <- function(x) {
+  border_remove(x) %>% 
+    valign(valign = "center", part = "all") %>% 
+    align(align = "center", part = "all") %>% 
+    fontsize(part = "all", size = 20) %>% 
+    bold(part = "header", bold = TRUE) %>%
+    bold(part = "body", j = 1, bold = TRUE) %>% 
+    color(color = "#b17268", part = "header") %>% 
+    bg(part = "header", bg = "transparent")
+}
+
+ft <- as_grouped_data(scoring_highlight, groups = c("name"), expand_single = TRUE) %>% 
+  as_flextable(hide_grouplabel = TRUE, col_keys = c("url", "fgp", "pts")) %>% 
+  set_header_labels(url = "", fgp = "Field goal", pts = "Points") %>%
+  mk_par(j = "url", i = ~ !is.na(url),
+         value = as_paragraph(
+           as_image(url, width = .75, height = 0.54),
+           "\n",
+           as_i(name)
+           )
+         ) %>% 
+  theme_scorer() %>% 
+  align(i = ~!is.na(name), align = "left", part = "body") %>% 
+  bg(i = ~ group %in% "Effective high-scorer", bg = "#f8b26399") %>%
+  bg(i = ~ group %in% "Ineffective high-scorer", bg = "#b1726899") %>%
+  hline(i = rep(c(FALSE, TRUE, FALSE, TRUE), length = nrow_part(.))) %>% 
+  autofit()
+```
+
+```{r include=FALSE}
+ftabgrob <- gen_grob(ft, fit = "fixed", scaling = "fixed", just = "centre")
+dims <- dim(ftabgrob)
+```
+
+Nous pouvons déjà transformer le tableau en un graphique.
+
+```{r, fig.width=dims$width, fig.height=dims$height, fig.align="center"}
+plot(ft, fit = "fixed", scaling = "fixed", just = "centre")
+```
+
+### Création du ggplot
+
+```{r, fig.width=7, fig.height=6}
+gg <- scoring_data %>% 
+  ggplot(mapping = aes(x = fgp, y = pts, color = group)) + 
+  geom_point(size = 3, alpha = .7, show.legend = FALSE) +
+  scale_color_manual(
+    values = c(
+      "Effective high-scorer" = "#f8b263",
+      "Ineffective low-scorer" = "#819eb2",
+      "Ineffective high-scorer" = "#b17268",
+      "Effective low-scorer" = "#dad162"
+      )) +
+  scale_y_continuous(limits = c(0, 40)) + 
+  geom_hline(data = Q3_data, aes(yintercept = `pts`)) +
+  geom_vline(data = Q3_data, aes(xintercept = fgp)) +
+  ggforce::geom_mark_rect(data = scoring_highlight, 
+                   mapping = aes(color = NULL),
+                   expand = unit(3, "mm"),
+                   show.legend = FALSE) +
+  annotate(geom = "text", x = 100, y = Q3_data$pts,
+           label = "Effective\nhigh-scorer", color = "#f8b263",
+           hjust = 1, vjust = -1) + 
+  annotate(geom = "text", x = 100, y = Q3_data$pts,
+           label = "Effective\nlow-scorer", color = "#dad162",
+           hjust = 1, vjust = 2) + 
+  annotate(geom = "text", x = 0, y = Q3_data$pts,
+           label = "Low-Effective\nhigh-scorer", color = "#819eb2",
+           hjust = 0.2, vjust = 2) + 
+  annotate(geom = "text", x = 0, y = Q3_data$pts,
+           label = "Low-Effective\nlow-scorer", color = "#b17268",
+           hjust = .2, vjust = -1) + 
+  theme_minimal()
+gg
+```
+
+### Ajout du flextable dans le ggplot
+
+```{r, fig.width=7, fig.height=7}
+library(patchwork)
+gg + inset_element(
+    gen_grob(ft, fit = "width"),
+    left = 0.65, bottom = .65, 
+    right = 1, top = 1
+  )  + theme(
+    plot.background = element_rect(fill = "transparent"),
+    panel.background = element_rect(fill = "transparent")
+  )
+```
+
+### Ajout du flextable à côté du ggplot
+
+```{r, fig.width=7, fig.height=7}
+gg + gen_grob(ft, fit = "width")
+# gg + gen_grob(ft, fit = "width") + plot_layout(ncol = 2, widths = c(3, 1))
+```

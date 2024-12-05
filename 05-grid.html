@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.39">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>6&nbsp; ‘flextable’ et les grid graphics – Reporting tabulaire en R avec le package ’flextable’</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./04-as-flextable-tables.html" rel="prev">
+<link href="./static/assets/img/favicon-32x32.png" rel="icon" type="image/png">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-a0b8f7824cab871fe7735f1fe8ba4cd9.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-0a9f4f3ac1289f99411244dcb7e12de9.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "language": {
+    "search-no-results-text": "Pas de résultats",
+    "search-matching-documents-text": "documents trouvés",
+    "search-copy-link-title": "Copier le lien vers la recherche",
+    "search-hide-matches-text": "Cacher les correspondances additionnelles",
+    "search-more-match-text": "correspondance de plus dans ce document",
+    "search-more-matches-text": "correspondances de plus dans ce document",
+    "search-clear-button-title": "Effacer",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Annuler",
+    "search-submit-button-title": "Envoyer",
+    "search-label": "Recherche"
+  }
+}</script>
+<link href="site_libs/tabwid-1.1.3/tabwid.css" rel="stylesheet">
+<script src="site_libs/tabwid-1.1.3/tabwid.js"></script>
+<link href="site_libs/open-sans-0.4.1/css/open-sans.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="static/assets/fonts/google/css/fira-code.css">
+<link rel="stylesheet" href="static/assets/fonts/google/css/fira-sans-condensed.css">
+<link rel="stylesheet" href="static/assets/css/style.css">
+</head>
+
+<body class="nav-sidebar floating">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Basculer la barre latérale" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./05-grid.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">‘flextable’ et les grid graphics</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Basculer la barre latérale" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Recherche" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Reporting tabulaire en R avec le package ’flextable’</a> 
+        <div class="sidebar-tools-main">
+    <a href="./Reporting-tabulaire-en-R-avec-le-package-’flextable’.pdf" title="Download PDF" class="quarto-navigation-tool px-1" aria-label="Download PDF"><i class="bi bi-file-pdf"></i></a>
+    <div id="quarto-search" class="quarto-navigation-tool px-1" title="Recherche"></div>
+</div>
+    </div>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01-flextable-intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Introduction à flextable</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02-as-flextable.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">La fonction as flextable</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03-flextable-exo.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Pratique simple de flextable</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04-as-flextable-tables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">‘flextable’ et le package ‘tables’</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05-grid.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">‘flextable’ et les grid graphics</span></span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+<div class="quarto-sidebar-footer"><div class="sidebar-footer-item">
+<p>Écrit par <a href="https://www.ardata.fr/"><img src="static/assets/img/ardata-logo.png" class="img-fluid" alt="ArData" width="70"></a></p>
+</div></div></nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Sommaire</h2>
+   
+  <ul>
+  <li><a href="#illustration-avec-grid" id="toc-illustration-avec-grid" class="nav-link active" data-scroll-target="#illustration-avec-grid"><span class="header-section-number">6.1</span> Illustration avec grid</a>
+  <ul>
+  <li><a href="#créer-un-tableau" id="toc-créer-un-tableau" class="nav-link" data-scroll-target="#créer-un-tableau"><span class="header-section-number">6.1.1</span> Créer un tableau</a></li>
+  <li><a href="#utilisation-de-gen_grob-et-de-grid" id="toc-utilisation-de-gen_grob-et-de-grid" class="nav-link" data-scroll-target="#utilisation-de-gen_grob-et-de-grid"><span class="header-section-number">6.1.2</span> Utilisation de gen_grob et de grid</a></li>
+  </ul></li>
+  <li><a href="#superposer-avec-un-ggplot" id="toc-superposer-avec-un-ggplot" class="nav-link" data-scroll-target="#superposer-avec-un-ggplot"><span class="header-section-number">6.2</span> Superposer avec un ggplot</a>
+  <ul>
+  <li><a href="#récupérer-les-données" id="toc-récupérer-les-données" class="nav-link" data-scroll-target="#récupérer-les-données"><span class="header-section-number">6.2.1</span> Récupérer les données</a></li>
+  <li><a href="#créer-le-flextable" id="toc-créer-le-flextable" class="nav-link" data-scroll-target="#créer-le-flextable"><span class="header-section-number">6.2.2</span> Créer le flextable</a></li>
+  <li><a href="#création-du-ggplot" id="toc-création-du-ggplot" class="nav-link" data-scroll-target="#création-du-ggplot"><span class="header-section-number">6.2.3</span> Création du ggplot</a></li>
+  <li><a href="#ajout-du-flextable-dans-le-ggplot" id="toc-ajout-du-flextable-dans-le-ggplot" class="nav-link" data-scroll-target="#ajout-du-flextable-dans-le-ggplot"><span class="header-section-number">6.2.4</span> Ajout du flextable dans le ggplot</a></li>
+  <li><a href="#ajout-du-flextable-à-côté-du-ggplot" id="toc-ajout-du-flextable-à-côté-du-ggplot" class="nav-link" data-scroll-target="#ajout-du-flextable-à-côté-du-ggplot"><span class="header-section-number">6.2.5</span> Ajout du flextable à côté du ggplot</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">‘flextable’ et les grid graphics</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Une des fonctionnalités du package flextable est la capacité à travailler avec un format ‘grid graphics’. La fonction <code>gen_grob()</code> génére un ‘grob’ (Graphical Object) à partir d’un flextable, ce dernier peut ensuite être ajouté à un graphique ggplot grace au package ‘patchwork’ ou avec le package ‘grid’.</p>
+<p>Ces fonctionnalités nécessitent l’utilisation d’une sortie graphique utilisant ‘systemfonts’ : <code>svglite::svglite()</code>, <code>ragg::agg_png()</code> ou <code>ggiraph::dsvg()</code>. Ces packages doivent être utilisés pour garantir que toutes les polices que vous utilisez seront reconnues par le moteur graphique R.</p>
+<section id="illustration-avec-grid" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="illustration-avec-grid"><span class="header-section-number">6.1</span> Illustration avec grid</h2>
+<section id="créer-un-tableau" class="level3" data-number="6.1.1">
+<h3 data-number="6.1.1" class="anchored" data-anchor-id="créer-un-tableau"><span class="header-section-number">6.1.1</span> Créer un tableau</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(palmerpenguins)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>ft <span class="ot">&lt;-</span> <span class="fu">as_flextable</span>(penguins)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>ft</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="tabwid" style="overflow-x:auto;width:100%;"><style>.cl-37fa3742{}.cl-37f26544{font-family:'Open Sans';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-37f26558{font-family:'Open Sans';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(153, 153, 153, 1.00);background-color:transparent;}.cl-37f62454{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-37f6245e{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-37f64236{width:0.808in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f64240{width:1.007in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f64241{width:1.36in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f6424a{width:1.332in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f6424b{width:1.615in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f64254{width:1.229in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f64255{width:0.773in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f64256{width:0.789in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f6425e{width:0.808in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f6425f{width:1.007in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f64268{width:1.36in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f64269{width:1.332in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f6426a{width:1.615in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f64272{width:1.229in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f64273{width:0.773in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f64274{width:0.789in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f6427c{width:0.808in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f6427d{width:1.007in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f6427e{width:1.36in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f6427f{width:1.332in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f64286{width:1.615in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f64287{width:1.229in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f64290{width:0.773in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f64291{width:0.789in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f64292{width:0.808in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f64293{width:1.007in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f6429a{width:1.36in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f6429b{width:1.332in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f6429c{width:1.615in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f6429d{width:1.229in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f642a4{width:0.773in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f642a5{width:0.789in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f642a6{width:0.808in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f642a7{width:1.007in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f642ae{width:1.36in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f642af{width:1.332in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f642b0{width:1.615in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f642b1{width:1.229in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f642b8{width:0.773in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-37f642b9{width:0.789in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-37fa3742"><thead><tr style="overflow-wrap:break-word;"><th class="cl-37f64236"><p class="cl-37f62454"><span class="cl-37f26544">species</span></p></th><th class="cl-37f64240"><p class="cl-37f62454"><span class="cl-37f26544">island</span></p></th><th class="cl-37f64241"><p class="cl-37f6245e"><span class="cl-37f26544">bill_length_mm</span></p></th><th class="cl-37f6424a"><p class="cl-37f6245e"><span class="cl-37f26544">bill_depth_mm</span></p></th><th class="cl-37f6424b"><p class="cl-37f6245e"><span class="cl-37f26544">flipper_length_mm</span></p></th><th class="cl-37f64254"><p class="cl-37f6245e"><span class="cl-37f26544">body_mass_g</span></p></th><th class="cl-37f64255"><p class="cl-37f62454"><span class="cl-37f26544">sex</span></p></th><th class="cl-37f64256"><p class="cl-37f6245e"><span class="cl-37f26544">year</span></p></th></tr><tr style="overflow-wrap:break-word;"><th class="cl-37f6425e"><p class="cl-37f62454"><span class="cl-37f26558">factor</span></p></th><th class="cl-37f6425f"><p class="cl-37f62454"><span class="cl-37f26558">factor</span></p></th><th class="cl-37f64268"><p class="cl-37f6245e"><span class="cl-37f26558">numeric</span></p></th><th class="cl-37f64269"><p class="cl-37f6245e"><span class="cl-37f26558">numeric</span></p></th><th class="cl-37f6426a"><p class="cl-37f6245e"><span class="cl-37f26558">integer</span></p></th><th class="cl-37f64272"><p class="cl-37f6245e"><span class="cl-37f26558">integer</span></p></th><th class="cl-37f64273"><p class="cl-37f62454"><span class="cl-37f26558">factor</span></p></th><th class="cl-37f64274"><p class="cl-37f6245e"><span class="cl-37f26558">integer</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-37f6427c"><p class="cl-37f62454"><span class="cl-37f26544">Adelie</span></p></td><td class="cl-37f6427d"><p class="cl-37f62454"><span class="cl-37f26544">Torgersen</span></p></td><td class="cl-37f6427e"><p class="cl-37f6245e"><span class="cl-37f26544">39.1</span></p></td><td class="cl-37f6427f"><p class="cl-37f6245e"><span class="cl-37f26544">18.7</span></p></td><td class="cl-37f64286"><p class="cl-37f6245e"><span class="cl-37f26544">181</span></p></td><td class="cl-37f64287"><p class="cl-37f6245e"><span class="cl-37f26544">3,750</span></p></td><td class="cl-37f64290"><p class="cl-37f62454"><span class="cl-37f26544">male</span></p></td><td class="cl-37f64291"><p class="cl-37f6245e"><span class="cl-37f26544">2,007</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-37f6427c"><p class="cl-37f62454"><span class="cl-37f26544">Adelie</span></p></td><td class="cl-37f6427d"><p class="cl-37f62454"><span class="cl-37f26544">Torgersen</span></p></td><td class="cl-37f6427e"><p class="cl-37f6245e"><span class="cl-37f26544">39.5</span></p></td><td class="cl-37f6427f"><p class="cl-37f6245e"><span class="cl-37f26544">17.4</span></p></td><td class="cl-37f64286"><p class="cl-37f6245e"><span class="cl-37f26544">186</span></p></td><td class="cl-37f64287"><p class="cl-37f6245e"><span class="cl-37f26544">3,800</span></p></td><td class="cl-37f64290"><p class="cl-37f62454"><span class="cl-37f26544">female</span></p></td><td class="cl-37f64291"><p class="cl-37f6245e"><span class="cl-37f26544">2,007</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-37f6427c"><p class="cl-37f62454"><span class="cl-37f26544">Adelie</span></p></td><td class="cl-37f6427d"><p class="cl-37f62454"><span class="cl-37f26544">Torgersen</span></p></td><td class="cl-37f6427e"><p class="cl-37f6245e"><span class="cl-37f26544">40.3</span></p></td><td class="cl-37f6427f"><p class="cl-37f6245e"><span class="cl-37f26544">18.0</span></p></td><td class="cl-37f64286"><p class="cl-37f6245e"><span class="cl-37f26544">195</span></p></td><td class="cl-37f64287"><p class="cl-37f6245e"><span class="cl-37f26544">3,250</span></p></td><td class="cl-37f64290"><p class="cl-37f62454"><span class="cl-37f26544">female</span></p></td><td class="cl-37f64291"><p class="cl-37f6245e"><span class="cl-37f26544">2,007</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-37f6427c"><p class="cl-37f62454"><span class="cl-37f26544">Adelie</span></p></td><td class="cl-37f6427d"><p class="cl-37f62454"><span class="cl-37f26544">Torgersen</span></p></td><td class="cl-37f6427e"><p class="cl-37f6245e"><span class="cl-37f26544"></span></p></td><td class="cl-37f6427f"><p class="cl-37f6245e"><span class="cl-37f26544"></span></p></td><td class="cl-37f64286"><p class="cl-37f6245e"><span class="cl-37f26544"></span></p></td><td class="cl-37f64287"><p class="cl-37f6245e"><span class="cl-37f26544"></span></p></td><td class="cl-37f64290"><p class="cl-37f62454"><span class="cl-37f26544"></span></p></td><td class="cl-37f64291"><p class="cl-37f6245e"><span class="cl-37f26544">2,007</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-37f6427c"><p class="cl-37f62454"><span class="cl-37f26544">Adelie</span></p></td><td class="cl-37f6427d"><p class="cl-37f62454"><span class="cl-37f26544">Torgersen</span></p></td><td class="cl-37f6427e"><p class="cl-37f6245e"><span class="cl-37f26544">36.7</span></p></td><td class="cl-37f6427f"><p class="cl-37f6245e"><span class="cl-37f26544">19.3</span></p></td><td class="cl-37f64286"><p class="cl-37f6245e"><span class="cl-37f26544">193</span></p></td><td class="cl-37f64287"><p class="cl-37f6245e"><span class="cl-37f26544">3,450</span></p></td><td class="cl-37f64290"><p class="cl-37f62454"><span class="cl-37f26544">female</span></p></td><td class="cl-37f64291"><p class="cl-37f6245e"><span class="cl-37f26544">2,007</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-37f6427c"><p class="cl-37f62454"><span class="cl-37f26544">Adelie</span></p></td><td class="cl-37f6427d"><p class="cl-37f62454"><span class="cl-37f26544">Torgersen</span></p></td><td class="cl-37f6427e"><p class="cl-37f6245e"><span class="cl-37f26544">39.3</span></p></td><td class="cl-37f6427f"><p class="cl-37f6245e"><span class="cl-37f26544">20.6</span></p></td><td class="cl-37f64286"><p class="cl-37f6245e"><span class="cl-37f26544">190</span></p></td><td class="cl-37f64287"><p class="cl-37f6245e"><span class="cl-37f26544">3,650</span></p></td><td class="cl-37f64290"><p class="cl-37f62454"><span class="cl-37f26544">male</span></p></td><td class="cl-37f64291"><p class="cl-37f6245e"><span class="cl-37f26544">2,007</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-37f6427c"><p class="cl-37f62454"><span class="cl-37f26544">Adelie</span></p></td><td class="cl-37f6427d"><p class="cl-37f62454"><span class="cl-37f26544">Torgersen</span></p></td><td class="cl-37f6427e"><p class="cl-37f6245e"><span class="cl-37f26544">38.9</span></p></td><td class="cl-37f6427f"><p class="cl-37f6245e"><span class="cl-37f26544">17.8</span></p></td><td class="cl-37f64286"><p class="cl-37f6245e"><span class="cl-37f26544">181</span></p></td><td class="cl-37f64287"><p class="cl-37f6245e"><span class="cl-37f26544">3,625</span></p></td><td class="cl-37f64290"><p class="cl-37f62454"><span class="cl-37f26544">female</span></p></td><td class="cl-37f64291"><p class="cl-37f6245e"><span class="cl-37f26544">2,007</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-37f6427c"><p class="cl-37f62454"><span class="cl-37f26544">Adelie</span></p></td><td class="cl-37f6427d"><p class="cl-37f62454"><span class="cl-37f26544">Torgersen</span></p></td><td class="cl-37f6427e"><p class="cl-37f6245e"><span class="cl-37f26544">39.2</span></p></td><td class="cl-37f6427f"><p class="cl-37f6245e"><span class="cl-37f26544">19.6</span></p></td><td class="cl-37f64286"><p class="cl-37f6245e"><span class="cl-37f26544">195</span></p></td><td class="cl-37f64287"><p class="cl-37f6245e"><span class="cl-37f26544">4,675</span></p></td><td class="cl-37f64290"><p class="cl-37f62454"><span class="cl-37f26544">male</span></p></td><td class="cl-37f64291"><p class="cl-37f6245e"><span class="cl-37f26544">2,007</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-37f6427c"><p class="cl-37f62454"><span class="cl-37f26544">Adelie</span></p></td><td class="cl-37f6427d"><p class="cl-37f62454"><span class="cl-37f26544">Torgersen</span></p></td><td class="cl-37f6427e"><p class="cl-37f6245e"><span class="cl-37f26544">34.1</span></p></td><td class="cl-37f6427f"><p class="cl-37f6245e"><span class="cl-37f26544">18.1</span></p></td><td class="cl-37f64286"><p class="cl-37f6245e"><span class="cl-37f26544">193</span></p></td><td class="cl-37f64287"><p class="cl-37f6245e"><span class="cl-37f26544">3,475</span></p></td><td class="cl-37f64290"><p class="cl-37f62454"><span class="cl-37f26544"></span></p></td><td class="cl-37f64291"><p class="cl-37f6245e"><span class="cl-37f26544">2,007</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-37f64292"><p class="cl-37f62454"><span class="cl-37f26544">Adelie</span></p></td><td class="cl-37f64293"><p class="cl-37f62454"><span class="cl-37f26544">Torgersen</span></p></td><td class="cl-37f6429a"><p class="cl-37f6245e"><span class="cl-37f26544">42.0</span></p></td><td class="cl-37f6429b"><p class="cl-37f6245e"><span class="cl-37f26544">20.2</span></p></td><td class="cl-37f6429c"><p class="cl-37f6245e"><span class="cl-37f26544">190</span></p></td><td class="cl-37f6429d"><p class="cl-37f6245e"><span class="cl-37f26544">4,250</span></p></td><td class="cl-37f642a4"><p class="cl-37f62454"><span class="cl-37f26544"></span></p></td><td class="cl-37f642a5"><p class="cl-37f6245e"><span class="cl-37f26544">2,007</span></p></td></tr></tbody><tfoot><tr style="overflow-wrap:break-word;"><td colspan="8" class="cl-37f642a6"><p class="cl-37f62454"><span class="cl-37f26544">n: 344</span></p></td></tr></tfoot></table></div>
+</div>
+</div>
+</section>
+<section id="utilisation-de-gen_grob-et-de-grid" class="level3" data-number="6.1.2">
+<h3 data-number="6.1.2" class="anchored" data-anchor-id="utilisation-de-gen_grob-et-de-grid"><span class="header-section-number">6.1.2</span> Utilisation de gen_grob et de grid</h3>
+<p>Le seul élément de flextable à utiliser est la fonction <code>gen_grob()</code>, le reste du code concerne des opérations ‘grid’.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(grid)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.raster</span>(magick<span class="sc">::</span><span class="fu">image_read</span>(<span class="st">"img/lter_penguins.png"</span>))</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.rect</span>(<span class="at">gp =</span> <span class="fu">gpar</span>(<span class="at">col =</span> <span class="st">"transparent"</span>, <span class="at">fill =</span> <span class="fu">radialGradient</span>(</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">colours =</span> <span class="fu">c</span>(</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">adjustcolor</span>(<span class="st">"white"</span>, .<span class="dv">6</span>),</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">adjustcolor</span>(<span class="st">"#f2af00"</span>, .<span class="dv">8</span>),</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">adjustcolor</span>(<span class="st">"#c32900"</span>, .<span class="dv">7</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">stops =</span> <span class="fu">c</span>(<span class="dv">0</span>, .<span class="dv">7</span>, <span class="dv">1</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>)))</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.text</span>(<span class="at">y =</span> .<span class="dv">1</span>, <span class="at">x =</span> .<span class="dv">95</span>, <span class="at">just =</span> <span class="st">"right"</span>,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">label =</span> <span class="st">"Size measurements for adult foraging penguins near Palmer Station, Antarctica"</span>, </span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">gp =</span> <span class="fu">gpar</span>(<span class="at">col =</span> <span class="st">"white"</span>, <span class="at">fontsize =</span> <span class="dv">10</span>, <span class="at">fontfamily =</span> <span class="st">"Open Sans"</span>, <span class="at">fontface =</span> <span class="st">"italic"</span>))</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.text</span>(<span class="at">y =</span> .<span class="dv">9</span>, </span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">label =</span> <span class="st">"Made with packages 'grid', 'flextable', 'ragg' and 'palmerpenguins'"</span>, </span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">gp =</span> <span class="fu">gpar</span>(<span class="at">col =</span> <span class="st">"white"</span>, <span class="at">fontsize =</span> <span class="dv">14</span>, <span class="at">fontfamily =</span> <span class="st">"Permanent Marker"</span>))</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="fu">pushViewport</span>(<span class="fu">viewport</span>(<span class="at">width =</span> .<span class="dv">95</span>, <span class="at">height =</span> .<span class="dv">75</span>, <span class="at">gp =</span> <span class="fu">gpar</span>(<span class="at">col =</span> <span class="st">"transparent"</span>)))</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.circle</span>(<span class="at">gp =</span> <span class="fu">gpar</span>(<span class="at">fill =</span> <span class="fu">adjustcolor</span>(<span class="st">"white"</span>, .<span class="dv">9</span>)), <span class="at">r =</span> .<span class="dv">4</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.draw</span>(<span class="fu">gen_grob</span>(ft, <span class="at">just =</span> <span class="st">"center"</span>, <span class="at">scaling =</span> <span class="st">"min"</span>, <span class="at">fit =</span> <span class="st">"width"</span>))</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="fu">popViewport</span>()</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="05-grid_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="1050"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="superposer-avec-un-ggplot" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="superposer-avec-un-ggplot"><span class="header-section-number">6.2</span> Superposer avec un ggplot</h2>
+<p>La dataviz dont nous nous sommes inspiré est disponible à l’adresse <a href="https://insights.datylon.com/stories/oDHVikVxaCaCGWRFGMdPgA" class="uri">https://insights.datylon.com/stories/oDHVikVxaCaCGWRFGMdPgA</a>.</p>
+<section id="récupérer-les-données" class="level3" data-number="6.2.1">
+<h3 data-number="6.2.1" class="anchored" data-anchor-id="récupérer-les-données"><span class="header-section-number">6.2.1</span> Récupérer les données</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(magick)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="do">## Linking to ImageMagick 6.9.11.60</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="do">## Enabled features: fontconfig, freetype, fftw, heic, lcms, pango, webp, x11</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="do">## Disabled features: cairo, ghostscript, raw, rsvg</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="do">## Using 2 threads</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>scoring_data <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"data/default_workbook.xlsx"</span>,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>           <span class="at">sheet =</span> <span class="st">"Scoring data"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">name =</span> NAME, <span class="at">pts =</span> PTS, <span class="at">fgp =</span> <span class="st">"FG%"</span>, <span class="at">group =</span> Group) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pts =</span> <span class="fu">as.double</span>(pts),</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">fgp =</span> <span class="fu">as.double</span>(fgp))</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>scoring_data</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="tabwid" style="overflow-x:auto;width:100%;"><style>.cl-3a2b765c{}.cl-3a25c644{font-family:'Open Sans';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-3a25c658{font-family:'Open Sans';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(153, 153, 153, 1.00);background-color:transparent;}.cl-3a28206a{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-3a282074{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-3a283ae6{width:2.021in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3a283af0{width:0.874in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3a283af1{width:1.871in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3a283afa{width:2.021in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3a283afb{width:0.874in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3a283b04{width:1.871in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3a283b05{width:2.021in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3a283b0e{width:0.874in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3a283b0f{width:1.871in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3a283b10{width:2.021in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3a283b11{width:0.874in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3a283b18{width:1.871in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3a283b19{width:2.021in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3a283b22{width:0.874in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3a283b23{width:1.871in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-3a2b765c"><thead><tr style="overflow-wrap:break-word;"><th class="cl-3a283ae6"><p class="cl-3a28206a"><span class="cl-3a25c644">name</span></p></th><th class="cl-3a283af0"><p class="cl-3a282074"><span class="cl-3a25c644">fgp</span></p></th><th class="cl-3a283af0"><p class="cl-3a282074"><span class="cl-3a25c644">pts</span></p></th><th class="cl-3a283af1"><p class="cl-3a28206a"><span class="cl-3a25c644">group</span></p></th></tr><tr style="overflow-wrap:break-word;"><th class="cl-3a283afa"><p class="cl-3a28206a"><span class="cl-3a25c658">character</span></p></th><th class="cl-3a283afb"><p class="cl-3a282074"><span class="cl-3a25c658">numeric</span></p></th><th class="cl-3a283afb"><p class="cl-3a282074"><span class="cl-3a25c658">numeric</span></p></th><th class="cl-3a283b04"><p class="cl-3a28206a"><span class="cl-3a25c658">character</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-3a283b05"><p class="cl-3a28206a"><span class="cl-3a25c644">Joel Embiid</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">49.9</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">30.6</span></p></td><td class="cl-3a283b0f"><p class="cl-3a28206a"><span class="cl-3a25c644">Ineffective high-scorer</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3a283b05"><p class="cl-3a28206a"><span class="cl-3a25c644">LeBron James</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">52.4</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">30.3</span></p></td><td class="cl-3a283b0f"><p class="cl-3a28206a"><span class="cl-3a25c644">Effective high-scorer</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3a283b05"><p class="cl-3a28206a"><span class="cl-3a25c644">Giannis Antetokounmpo</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">55.3</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">29.9</span></p></td><td class="cl-3a283b0f"><p class="cl-3a28206a"><span class="cl-3a25c644">Effective high-scorer</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3a283b05"><p class="cl-3a28206a"><span class="cl-3a25c644">Kevin Durant</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">51.8</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">29.9</span></p></td><td class="cl-3a283b0f"><p class="cl-3a28206a"><span class="cl-3a25c644">Effective high-scorer</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3a283b05"><p class="cl-3a28206a"><span class="cl-3a25c644">Luka Doncic</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">45.7</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">28.4</span></p></td><td class="cl-3a283b0f"><p class="cl-3a28206a"><span class="cl-3a25c644">Ineffective high-scorer</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3a283b05"><p class="cl-3a28206a"><span class="cl-3a25c644">Trae Young</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">46.0</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">28.4</span></p></td><td class="cl-3a283b0f"><p class="cl-3a28206a"><span class="cl-3a25c644">Ineffective high-scorer</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3a283b05"><p class="cl-3a28206a"><span class="cl-3a25c644">DeMar DeRozan</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">50.4</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">27.9</span></p></td><td class="cl-3a283b0f"><p class="cl-3a28206a"><span class="cl-3a25c644">Effective high-scorer</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3a283b05"><p class="cl-3a28206a"><span class="cl-3a25c644">Kyrie Irving</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">46.9</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">27.4</span></p></td><td class="cl-3a283b0f"><p class="cl-3a28206a"><span class="cl-3a25c644">Ineffective high-scorer</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3a283b05"><p class="cl-3a28206a"><span class="cl-3a25c644">Ja Morant</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">49.3</span></p></td><td class="cl-3a283b0e"><p class="cl-3a282074"><span class="cl-3a25c644">27.4</span></p></td><td class="cl-3a283b0f"><p class="cl-3a28206a"><span class="cl-3a25c644">Ineffective high-scorer</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3a283b10"><p class="cl-3a28206a"><span class="cl-3a25c644">Nikola Jokic</span></p></td><td class="cl-3a283b11"><p class="cl-3a282074"><span class="cl-3a25c644">58.3</span></p></td><td class="cl-3a283b11"><p class="cl-3a282074"><span class="cl-3a25c644">27.1</span></p></td><td class="cl-3a283b18"><p class="cl-3a28206a"><span class="cl-3a25c644">Effective high-scorer</span></p></td></tr></tbody><tfoot><tr style="overflow-wrap:break-word;"><td colspan="4" class="cl-3a283b19"><p class="cl-3a28206a"><span class="cl-3a25c644">n: 581</span></p></td></tr></tfoot></table></div>
+</div>
+</div>
+<p>Pour les images du tableau, il faut créer manuellement un data.frame. On va télécharger chaque image dans un fichier temporaire car flextable ne gère que les images disponible localement.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>head_shot <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tribble</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>name, <span class="sc">~</span>url,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Joel Embiid"</span>, <span class="st">"https://cdn.nba.com/headshots/nba/latest/1040x760/203954.png"</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"LeBron James"</span>, <span class="st">"https://cdn.nba.com/headshots/nba/latest/1040x760/2544.png"</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Giannis Antetokounmpo"</span>, <span class="st">"https://cdn.nba.com/headshots/nba/latest/1040x760/203507.png"</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Kevin Durant"</span>, <span class="st">"https://cdn.nba.com/headshots/nba/latest/1040x760/201142.png"</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Trae Young"</span>, <span class="st">"https://cdn.nba.com/headshots/nba/latest/1040x760/1629027.png"</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Luka Doncic"</span>, <span class="st">"https://cdn.nba.com/headshots/nba/latest/1040x760/1629029.png"</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">url =</span> <span class="fu">map_chr</span>(url, <span class="cf">function</span>(z) {</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    path <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">".png"</span>)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">image_read</span>(z) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">image_resize</span>(<span class="at">geometry =</span> <span class="st">"144x"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">image_write</span>(<span class="at">path =</span> path)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    path</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  }))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Le tableau ‘Q3_data’ va être utilisé lors de la construction du ggplot.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Q3_data <span class="ot">&lt;-</span> <span class="fu">summarise</span>(scoring_data, </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">pts =</span> <span class="fu">quantile</span>(pts, <span class="at">probs =</span> .<span class="dv">75</span>),</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">fgp =</span> <span class="fu">quantile</span>(fgp, <span class="at">probs =</span> .<span class="dv">75</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>          )</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>Q3_data</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="tabwid" style="overflow-x:auto;width:100%;"><style>.cl-3b48b1c6{}.cl-3b4278a6{font-family:'Open Sans';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-3b4278b0{font-family:'Open Sans';font-size:7.3pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(153, 153, 153, 1.00);background-color:transparent;}.cl-3b4497a8{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-3b4497b2{margin:0;text-align:center;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-3b44afd6{width:0.513in;background-color:transparent;vertical-align: top;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b44afe0{width:0.587in;background-color:transparent;vertical-align: top;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b44afea{width:0.513in;background-color:transparent;vertical-align: top;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b44afeb{width:0.587in;background-color:transparent;vertical-align: top;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-3b48b1c6"><tbody><tr style="overflow-wrap:break-word;"><td class="cl-3b44afd6"><p class="cl-3b4497a8"><span class="cl-3b4278a6">pts</span><br><span class="cl-3b4278b0">numeric</span></p></td><td class="cl-3b44afe0"><p class="cl-3b4497b2"><span class="cl-3b4278a6">11.3</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3b44afea"><p class="cl-3b4497a8"><span class="cl-3b4278a6">fgp</span><br><span class="cl-3b4278b0">numeric</span></p></td><td class="cl-3b44afeb"><p class="cl-3b4497b2"><span class="cl-3b4278a6">50</span></p></td></tr></tbody></table></div>
+</div>
+</div>
+<p>Le tableau ‘scoring_highlight’ va être le tableau principal.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>scoring_highlight <span class="ot">&lt;-</span> scoring_data <span class="sc">%&gt;%</span> </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(pts), <span class="fu">desc</span>(fgp)) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(pts, <span class="at">n =</span> <span class="dv">6</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(head_shot, <span class="at">by =</span> <span class="st">"name"</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>scoring_highlight</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="tabwid" style="overflow-x:auto;width:100%;"><style>.cl-3b826452{}.cl-3b7cbab6{font-family:'Open Sans';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-3b7cbac0{font-family:'Open Sans';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(153, 153, 153, 1.00);background-color:transparent;}.cl-3b7f166c{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-3b7f1680{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-3b7f2fe4{width:2.021in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f2ff8{width:0.874in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f3002{width:1.871in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f3003{width:3.377in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f300c{width:2.021in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f3016{width:0.874in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f3017{width:1.871in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f3020{width:3.377in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f302a{width:2.021in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f302b{width:0.874in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f302c{width:1.871in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f3034{width:3.377in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f303e{width:2.021in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f3048{width:0.874in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f3052{width:1.871in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f3053{width:3.377in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f305c{width:2.021in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f3066{width:0.874in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f3067{width:1.871in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3b7f3070{width:3.377in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-3b826452"><thead><tr style="overflow-wrap:break-word;"><th class="cl-3b7f2fe4"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">name</span></p></th><th class="cl-3b7f2ff8"><p class="cl-3b7f1680"><span class="cl-3b7cbab6">fgp</span></p></th><th class="cl-3b7f2ff8"><p class="cl-3b7f1680"><span class="cl-3b7cbab6">pts</span></p></th><th class="cl-3b7f3002"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">group</span></p></th><th class="cl-3b7f3003"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">url</span></p></th></tr><tr style="overflow-wrap:break-word;"><th class="cl-3b7f300c"><p class="cl-3b7f166c"><span class="cl-3b7cbac0">character</span></p></th><th class="cl-3b7f3016"><p class="cl-3b7f1680"><span class="cl-3b7cbac0">numeric</span></p></th><th class="cl-3b7f3016"><p class="cl-3b7f1680"><span class="cl-3b7cbac0">numeric</span></p></th><th class="cl-3b7f3017"><p class="cl-3b7f166c"><span class="cl-3b7cbac0">character</span></p></th><th class="cl-3b7f3020"><p class="cl-3b7f166c"><span class="cl-3b7cbac0">character</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-3b7f302a"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">Joel Embiid</span></p></td><td class="cl-3b7f302b"><p class="cl-3b7f1680"><span class="cl-3b7cbab6">49.9</span></p></td><td class="cl-3b7f302b"><p class="cl-3b7f1680"><span class="cl-3b7cbab6">30.6</span></p></td><td class="cl-3b7f302c"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">Ineffective high-scorer</span></p></td><td class="cl-3b7f3034"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">/tmp/RtmpMNWTCo/file18561d2ab8c9.png</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3b7f302a"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">LeBron James</span></p></td><td class="cl-3b7f302b"><p class="cl-3b7f1680"><span class="cl-3b7cbab6">52.4</span></p></td><td class="cl-3b7f302b"><p class="cl-3b7f1680"><span class="cl-3b7cbab6">30.3</span></p></td><td class="cl-3b7f302c"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">Effective high-scorer</span></p></td><td class="cl-3b7f3034"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">/tmp/RtmpMNWTCo/file185659d370d4.png</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3b7f302a"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">Giannis Antetokounmpo</span></p></td><td class="cl-3b7f302b"><p class="cl-3b7f1680"><span class="cl-3b7cbab6">55.3</span></p></td><td class="cl-3b7f302b"><p class="cl-3b7f1680"><span class="cl-3b7cbab6">29.9</span></p></td><td class="cl-3b7f302c"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">Effective high-scorer</span></p></td><td class="cl-3b7f3034"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">/tmp/RtmpMNWTCo/file185624d9ebc9.png</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3b7f302a"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">Kevin Durant</span></p></td><td class="cl-3b7f302b"><p class="cl-3b7f1680"><span class="cl-3b7cbab6">51.8</span></p></td><td class="cl-3b7f302b"><p class="cl-3b7f1680"><span class="cl-3b7cbab6">29.9</span></p></td><td class="cl-3b7f302c"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">Effective high-scorer</span></p></td><td class="cl-3b7f3034"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">/tmp/RtmpMNWTCo/file185663912c44.png</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3b7f302a"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">Trae Young</span></p></td><td class="cl-3b7f302b"><p class="cl-3b7f1680"><span class="cl-3b7cbab6">46.0</span></p></td><td class="cl-3b7f302b"><p class="cl-3b7f1680"><span class="cl-3b7cbab6">28.4</span></p></td><td class="cl-3b7f302c"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">Ineffective high-scorer</span></p></td><td class="cl-3b7f3034"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">/tmp/RtmpMNWTCo/file18568543490.png</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3b7f303e"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">Luka Doncic</span></p></td><td class="cl-3b7f3048"><p class="cl-3b7f1680"><span class="cl-3b7cbab6">45.7</span></p></td><td class="cl-3b7f3048"><p class="cl-3b7f1680"><span class="cl-3b7cbab6">28.4</span></p></td><td class="cl-3b7f3052"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">Ineffective high-scorer</span></p></td><td class="cl-3b7f3053"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">/tmp/RtmpMNWTCo/file185673402437.png</span></p></td></tr></tbody><tfoot><tr style="overflow-wrap:break-word;"><td colspan="5" class="cl-3b7f305c"><p class="cl-3b7f166c"><span class="cl-3b7cbab6">n: 6</span></p></td></tr></tfoot></table></div>
+</div>
+</div>
+</section>
+<section id="créer-le-flextable" class="level3" data-number="6.2.2">
+<h3 data-number="6.2.2" class="anchored" data-anchor-id="créer-le-flextable"><span class="header-section-number">6.2.2</span> Créer le flextable</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>theme_scorer <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">border_remove</span>(x) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">valign</span>(<span class="at">valign =</span> <span class="st">"center"</span>, <span class="at">part =</span> <span class="st">"all"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">align</span>(<span class="at">align =</span> <span class="st">"center"</span>, <span class="at">part =</span> <span class="st">"all"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">fontsize</span>(<span class="at">part =</span> <span class="st">"all"</span>, <span class="at">size =</span> <span class="dv">20</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bold</span>(<span class="at">part =</span> <span class="st">"header"</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bold</span>(<span class="at">part =</span> <span class="st">"body"</span>, <span class="at">j =</span> <span class="dv">1</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">color</span>(<span class="at">color =</span> <span class="st">"#b17268"</span>, <span class="at">part =</span> <span class="st">"header"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bg</span>(<span class="at">part =</span> <span class="st">"header"</span>, <span class="at">bg =</span> <span class="st">"transparent"</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>ft <span class="ot">&lt;-</span> <span class="fu">as_grouped_data</span>(scoring_highlight, <span class="at">groups =</span> <span class="fu">c</span>(<span class="st">"name"</span>), <span class="at">expand_single =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_flextable</span>(<span class="at">hide_grouplabel =</span> <span class="cn">TRUE</span>, <span class="at">col_keys =</span> <span class="fu">c</span>(<span class="st">"url"</span>, <span class="st">"fgp"</span>, <span class="st">"pts"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_header_labels</span>(<span class="at">url =</span> <span class="st">""</span>, <span class="at">fgp =</span> <span class="st">"Field goal"</span>, <span class="at">pts =</span> <span class="st">"Points"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mk_par</span>(<span class="at">j =</span> <span class="st">"url"</span>, <span class="at">i =</span> <span class="sc">~</span> <span class="sc">!</span><span class="fu">is.na</span>(url),</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">value =</span> <span class="fu">as_paragraph</span>(</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>           <span class="fu">as_image</span>(url, <span class="at">width =</span> .<span class="dv">75</span>, <span class="at">height =</span> <span class="fl">0.54</span>),</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>           <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>           <span class="fu">as_i</span>(name)</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>           )</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>         ) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_scorer</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">align</span>(<span class="at">i =</span> <span class="sc">~!</span><span class="fu">is.na</span>(name), <span class="at">align =</span> <span class="st">"left"</span>, <span class="at">part =</span> <span class="st">"body"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bg</span>(<span class="at">i =</span> <span class="sc">~</span> group <span class="sc">%in%</span> <span class="st">"Effective high-scorer"</span>, <span class="at">bg =</span> <span class="st">"#f8b26399"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bg</span>(<span class="at">i =</span> <span class="sc">~</span> group <span class="sc">%in%</span> <span class="st">"Ineffective high-scorer"</span>, <span class="at">bg =</span> <span class="st">"#b1726899"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hline</span>(<span class="at">i =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="cn">FALSE</span>, <span class="cn">TRUE</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span>), <span class="at">length =</span> <span class="fu">nrow_part</span>(.))) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">autofit</span>()</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Nous pouvons déjà transformer le tableau en un graphique.</p>
+<div class="cell" data-layout-align="center">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(ft, <span class="at">fit =</span> <span class="st">"fixed"</span>, <span class="at">scaling =</span> <span class="st">"fixed"</span>, <span class="at">just =</span> <span class="st">"centre"</span>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="05-grid_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="569"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="création-du-ggplot" class="level3" data-number="6.2.3">
+<h3 data-number="6.2.3" class="anchored" data-anchor-id="création-du-ggplot"><span class="header-section-number">6.2.3</span> Création du ggplot</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>gg <span class="ot">&lt;-</span> scoring_data <span class="sc">%&gt;%</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> fgp, <span class="at">y =</span> pts, <span class="at">color =</span> group)) <span class="sc">+</span> </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>, <span class="at">alpha =</span> .<span class="dv">7</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Effective high-scorer"</span> <span class="ot">=</span> <span class="st">"#f8b263"</span>,</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Ineffective low-scorer"</span> <span class="ot">=</span> <span class="st">"#819eb2"</span>,</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Ineffective high-scorer"</span> <span class="ot">=</span> <span class="st">"#b17268"</span>,</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Effective low-scorer"</span> <span class="ot">=</span> <span class="st">"#dad162"</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>      )) <span class="sc">+</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">40</span>)) <span class="sc">+</span> </span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">data =</span> Q3_data, <span class="fu">aes</span>(<span class="at">yintercept =</span> <span class="st">`</span><span class="at">pts</span><span class="st">`</span>)) <span class="sc">+</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">data =</span> Q3_data, <span class="fu">aes</span>(<span class="at">xintercept =</span> fgp)) <span class="sc">+</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  ggforce<span class="sc">::</span><span class="fu">geom_mark_rect</span>(<span class="at">data =</span> scoring_highlight, </span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>                   <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">color =</span> <span class="cn">NULL</span>),</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>                   <span class="at">expand =</span> <span class="fu">unit</span>(<span class="dv">3</span>, <span class="st">"mm"</span>),</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>                   <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">100</span>, <span class="at">y =</span> Q3_data<span class="sc">$</span>pts,</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>           <span class="at">label =</span> <span class="st">"Effective</span><span class="sc">\n</span><span class="st">high-scorer"</span>, <span class="at">color =</span> <span class="st">"#f8b263"</span>,</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>           <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">vjust =</span> <span class="sc">-</span><span class="dv">1</span>) <span class="sc">+</span> </span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">100</span>, <span class="at">y =</span> Q3_data<span class="sc">$</span>pts,</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>           <span class="at">label =</span> <span class="st">"Effective</span><span class="sc">\n</span><span class="st">low-scorer"</span>, <span class="at">color =</span> <span class="st">"#dad162"</span>,</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>           <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">vjust =</span> <span class="dv">2</span>) <span class="sc">+</span> </span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">0</span>, <span class="at">y =</span> Q3_data<span class="sc">$</span>pts,</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>           <span class="at">label =</span> <span class="st">"Low-Effective</span><span class="sc">\n</span><span class="st">high-scorer"</span>, <span class="at">color =</span> <span class="st">"#819eb2"</span>,</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>           <span class="at">hjust =</span> <span class="fl">0.2</span>, <span class="at">vjust =</span> <span class="dv">2</span>) <span class="sc">+</span> </span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">0</span>, <span class="at">y =</span> Q3_data<span class="sc">$</span>pts,</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>           <span class="at">label =</span> <span class="st">"Low-Effective</span><span class="sc">\n</span><span class="st">low-scorer"</span>, <span class="at">color =</span> <span class="st">"#b17268"</span>,</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>           <span class="at">hjust =</span> .<span class="dv">2</span>, <span class="at">vjust =</span> <span class="sc">-</span><span class="dv">1</span>) <span class="sc">+</span> </span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>gg</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="05-grid_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="1050"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="ajout-du-flextable-dans-le-ggplot" class="level3" data-number="6.2.4">
+<h3 data-number="6.2.4" class="anchored" data-anchor-id="ajout-du-flextable-dans-le-ggplot"><span class="header-section-number">6.2.4</span> Ajout du flextable dans le ggplot</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>gg <span class="sc">+</span> <span class="fu">inset_element</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">gen_grob</span>(ft, <span class="at">fit =</span> <span class="st">"width"</span>),</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">left =</span> <span class="fl">0.65</span>, <span class="at">bottom =</span> .<span class="dv">65</span>, </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">right =</span> <span class="dv">1</span>, <span class="at">top =</span> <span class="dv">1</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  )  <span class="sc">+</span> <span class="fu">theme</span>(</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"transparent"</span>),</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"transparent"</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="05-grid_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="1050"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="ajout-du-flextable-à-côté-du-ggplot" class="level3" data-number="6.2.5">
+<h3 data-number="6.2.5" class="anchored" data-anchor-id="ajout-du-flextable-à-côté-du-ggplot"><span class="header-section-number">6.2.5</span> Ajout du flextable à côté du ggplot</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>gg <span class="sc">+</span> <span class="fu">gen_grob</span>(ft, <span class="at">fit =</span> <span class="st">"width"</span>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="05-grid_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="1050"></p>
+</figure>
+</div>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># gg + gen_grob(ft, fit = "width") + plot_layout(ncol = 2, widths = c(3, 1))</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copié");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copié");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./04-as-flextable-tables.html" class="pagination-link" aria-label="'flextable' et le package 'tables'">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">‘flextable’ et le package ‘tables’</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

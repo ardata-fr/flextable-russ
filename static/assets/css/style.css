@@ -1,0 +1,76 @@
+.book.font-family-1 {
+  font-family: 'Fira Sans Condensed' !important;
+}
+.book .book-body .page-wrapper .page-inner section.normal code, .book .book-body .page-wrapper .page-inner section.normal pre {
+  font-family: 'Fira Code' !important;
+}
+
+p.caption {
+  color: #777;
+  margin-top: 10px;
+}
+p code {
+  white-space: inherit;
+}
+pre {
+  word-break: normal;
+  word-wrap: normal;
+}
+
+/* blocs de code background gris */
+pre code {
+  white-space: inherit;
+  background-color: #f1f3f5
+}
+
+/* blocs de code angle arrondi */
+pre.sourceCode{
+  padding: .0em;
+
+}
+
+/* ArData img inline */
+img {
+  display: inline;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+:not(pre) > code{
+  color: darkred !important;
+}
+
+/* listes */
+
+
+
+
+.flextable-shadow-host{
+  overflow: scroll;
+}
+
+.office-download-link {
+  text-align: center;
+}
+
+.two-third-sized{
+  width: 66%;
+  max-width: 66%;
+}
+.third-sized{
+  width: 33%;
+  max-width: 33%;
+}
+
+.inline > p > img {
+  display: inline;
+}
+
+.figcaption {
+  text-align: center;
+  font-style: italic;
+}
+.float:has(img) {
+  text-align: center;
+}
+
